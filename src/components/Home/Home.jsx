@@ -10,7 +10,8 @@ import { styled } from '@mui/material/styles';
 import TableCell, { tableCellClasses } from '@mui/material/TableCell';
 import { useNavigate } from 'react-router-dom';
 import { Box } from '@mui/material';
-
+import axios from 'axios';
+import { useEffect, useState } from 'react';
 
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -27,22 +28,49 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
     '&:nth-of-type(odd)': {
         backgroundColor: theme.palette.action.hover,
     },
-    // hide last border
     '&:last-child td, &:last-child th': {
         border: 0,
     },
 }));
 
 
-export default function Home({ data }) {
-
+export default function Home() {
+    
     const navigate = useNavigate();
-    const handleEdit = () => {
-        navigate('/update')
+    const [data, setData] = useState([]);
+
+    const getData = async () => {
+  
+      try {
+        const dataa = await axios.get("http://localhost:4000/users");
+        setData(dataa.data)
+      }
+      catch (err) {
+        console.log(`https//:error is ${err}`)
+      }
+  
+    }
+  
+    useEffect(() => {
+      getData();
+    }, [])
+
+   
+    const handleEdit = (id) => {
+        navigate(`/update/${id}`)
     }
 
-    const handleDelete = () => {
-        data.remove()
+    const handleDelete = async (id) => {
+       
+        const confirmDelete = window.confirm("Are you sure you want to delete this user?");
+        if (confirmDelete) {
+            try {
+                await axios.delete(`http://localhost:4000/users/${id}`);
+                getData();
+            } catch (err) {
+                console.log(`Error: ${err}`);
+            }
+        }
     }
     
     const handleAdd = () =>{
@@ -74,8 +102,8 @@ export default function Home({ data }) {
                                 <TableCell align="center">{d.name}</TableCell>
                                 <TableCell align="center">{d.email}</TableCell>
                                 <TableCell align="center">{d.role}</TableCell>
-                                <TableCell align="center"><Button variant="contained" onClick={handleEdit}>Edit</Button></TableCell>
-                                <TableCell align="center"><Button variant="contained" color='error' onClick={handleDelete}>Delete</Button></TableCell>
+                                <TableCell align="center"><Button variant="contained" onClick={()=>handleEdit(d.id)}>Edit</Button></TableCell>
+                                <TableCell align="center"><Button variant="contained" color='error' onClick={() => handleDelete(d.id)}>Delete</Button></TableCell>
                             </StyledTableRow>
                         ))}
                     </TableBody>
